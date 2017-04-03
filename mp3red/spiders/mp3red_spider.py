@@ -1,21 +1,18 @@
 import scrapy
 from selenium import webdriver
 
-######################### sudo pip install --upgrade scrapy selenium twisted pyopenssl
-######################### sudo apt-get install phantomjs
-
+#===============================================================================
+# Song
+#===============================================================================
 class Song(scrapy.Item):
     title = scrapy.Field()
     url = scrapy.Field()
 
 #===============================================================================
-#
+# Mp3RedSpider
 #===============================================================================
 class Mp3RedSpider(scrapy.Spider):
     name = 'mp3red'  # spider name
-
-    max_pages = 3
-    cur_page = 0
 
     #===========================================================================
     # start_requests ()
@@ -23,10 +20,9 @@ class Mp3RedSpider(scrapy.Spider):
     def start_requests(self):
         # Initialized our headless browser
         self.browser = webdriver.PhantomJS()
-
         self.browser.get('http://mp3red.me')
 
-        search_box = self.browser.find_element_by_id("search_str")
+        search_box = self.browser.find_element_by_id('search_str')
         search_box.send_keys('Iron Maiden')
 
         button = self.browser.find_element_by_xpath('//input[@class="button"]')
@@ -41,9 +37,6 @@ class Mp3RedSpider(scrapy.Spider):
     def parse_song_page(self, response):
 
         print('%s' % response.url)
-        self.cur_page += 1
-        if (self.cur_page > self.max_pages):
-            return
 
         self.browser.get(response.url)
 
@@ -57,7 +50,7 @@ class Mp3RedSpider(scrapy.Spider):
             item['url'] = song_url
             yield item
 
-            print("################## %s : %s " % (song_title, song_url))
+            print("\t%s : %s " % (song_title, song_url))
 
         next_page_url = self.browser.find_element_by_xpath('//a[contains(text(),"Next page")]').get_attribute('href')
         yield scrapy.Request(next_page_url, callback=self.parse_song_page)
